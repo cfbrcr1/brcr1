@@ -1,7 +1,9 @@
 name: test
+
 on:
   schedule:
     - cron: '0 8 * * *'
+
 jobs:
   run-monitor:
     runs-on: ubuntu-latest
@@ -10,7 +12,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Cache dependencies
+        id: cache-npm
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/puppeteer
+          key: ${{ runner.os }}-npm-puppeteer
       - name: Install
+        if: steps.cache-npm.outputs.cache-hit == 'false'
         run: npm install puppeteer
       - name: Run
         env:
