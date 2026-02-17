@@ -1,7 +1,6 @@
 name: test
 
 on:
-  schedule:
   workflow_dispatch:
 
 jobs:
