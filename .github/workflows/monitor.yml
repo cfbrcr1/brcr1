@@ -1,6 +1,9 @@
+
 name: test
 
 on:
+  schedule:
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -17,8 +20,8 @@ jobs:
 
       - name: Run
         env:
-          CORE_JS: ${{ secrets.CORE_JS }}
-          WORKER_URL: ${{ secrets.WORKER_URL }}
+          CORE_JS: ${{ CORE_JS }}
+          WORKER_URL: ${{ WORKER_URL }}
         run: |
           echo "$CORE_JS" > index.js
           node index.js
