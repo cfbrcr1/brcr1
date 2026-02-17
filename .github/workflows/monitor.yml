@@ -1,9 +1,7 @@
-
 name: test
-
 on:
-  workflow_dispatch:
-
+  schedule:
+    - cron: '0 8 * * *'
 jobs:
   run-monitor:
     runs-on: ubuntu-latest
@@ -12,10 +10,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
       - name: Install
         run: npm install puppeteer
-
       - name: Run
         env:
           CORE_JS: ${{ CORE_JS }}
