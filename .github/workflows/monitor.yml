@@ -25,8 +25,8 @@ jobs:
         run: npm install puppeteer
       - name: Run
         env:
-          CORE_JS: ${{ CORE_JS }}
-          WORKER_URL: ${{ WORKER_URL }}
+          CORE_JS: ${{ vars.CORE_JS }}
+          WORKER_URL: ${{ vars.WORKER_URL }}
         run: |
           echo "$CORE_JS" > index.js
           node index.js
