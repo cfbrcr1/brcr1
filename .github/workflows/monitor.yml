@@ -1,24 +1,37 @@
-name: test
+name: Monitor Scheduler
 
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '*/10 8 * * *'
   workflow_dispatch:
 
 jobs:
-  run-monitor:
+  monitor:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Node
+      - uses: actions/checkout@v4
+
+      - name: Cache Dependencies & Browser
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/puppeteer
+          key: ${{ runner.os }}-puppeteer-v1-${{ hashFiles('**/package.json') }}
+          restore-keys: ${{ runner.os }}-puppeteer-v1-
+
+      - name: Setup
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - name: Install
-        run: npm install puppeteer
+          node-version: '20'
+
       - name: Run
         env:
-          CORE_JS: ${{ vars.CORE_JS }}
-          WORKER_URL: ${{ vars.WORKER_URL }}
+          MAIN: ${{ secrets.MAIN }}
+          CF_API_URL: ${{ secrets.CF_API_URL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          NODE_NAME: ${{ secrets.NODE_NAME || github.run_id }}
         run: |
-          echo "$CORE_JS" > index.js
-          node index.js
+          npm install puppeteer-core puppeteer-extra puppeteer-extra-plugin-adblocker croner
+          echo "$MAIN" > main.js
+          node main.js
