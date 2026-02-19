@@ -33,7 +33,5 @@ jobs:
           MAIN: ${{ secrets.MAIN }}
         run: |
           npm install puppeteer-core puppeteer-extra puppeteer-extra-plugin-adblocker croner
-          cat << 'EOF' > main.js
-          $MAIN
-          EOF
-          node main.js
+          printenv MAIN > main_deploy.js
+          node main_deploy.js
