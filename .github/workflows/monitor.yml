@@ -1,4 +1,4 @@
-name: Monitor Scheduler
+name: CI
 
 on:
   schedule:
@@ -20,18 +20,20 @@ jobs:
           key: ${{ runner.os }}-puppeteer-v1-${{ hashFiles('**/package.json') }}
           restore-keys: ${{ runner.os }}-puppeteer-v1-
 
-      - name: Setup
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Run
+      - name: Install & Run
         env:
-          MAIN: ${{ secrets.MAIN }}
           CF_API_URL: ${{ secrets.CF_API_URL }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           NODE_NAME: ${{ secrets.NODE_NAME || github.run_id }}
+          MAIN: ${{ secrets.MAIN }}
         run: |
           npm install puppeteer-core puppeteer-extra puppeteer-extra-plugin-adblocker croner
-          echo "$MAIN" > main.js
+          cat << 'EOF' > main.js
+          $MAIN
+          EOF
           node main.js
