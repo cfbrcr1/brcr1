@@ -2,7 +2,8 @@ name: CI
 
 on:
   #schedule:
-  #  - cron: '*/10 8 * * *'
+  #  # 每10分钟执行一次（UTC时间，基于UTC+8的cron在此换算）
+  #  - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,25 +12,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache Dependencies & Browser
+      # 缓存 node_modules 和 puppeteer 浏览器，加速后续启动
+      - name: 缓存依赖和浏览器
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             ~/.cache/puppeteer
-          key: ${{ runner.os }}-puppeteer-v1-${{ hashFiles('**/package.json') }}
-          restore-keys: ${{ runner.os }}-puppeteer-v1-
+          key: ${{ runner.os }}-puppeteer-v2-${{ hashFiles('package.json') }}
+          restore-keys: ${{ runner.os }}-puppeteer-v2-
 
-      - name: Setup Node.js
+      - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install & Run
+      - name: 安装依赖并运行
         env:
           CF_API_URL: ${{ secrets.CF_API_URL }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          NODE_NAME: ${{ secrets.NODE_NAME || github.run_id }}
+          # NODE_NAME 必须唯一，用于分片计算
+          NODE_NAME: ${{ secrets.NODE_NAME }}
+          # 严禁用 echo "$MAIN" > file，shell会解析 ${} 导致代码损坏
           MAIN: ${{ secrets.MAIN }}
         run: |
           npm install puppeteer-core puppeteer-extra puppeteer-extra-plugin-adblocker croner
