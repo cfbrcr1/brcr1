@@ -1,9 +1,9 @@
 name: CI
 
 on:
-  #schedule:
+  schedule:
   #  # 每10分钟执行一次（UTC时间，基于UTC+8的cron在此换算）
-  #  - cron: '*/10 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 缓存依赖、浏览器和中文字体
+      - name: 缓存程序
         uses: actions/cache@v4
         with:
           path: |
@@ -22,7 +22,7 @@ jobs:
           key: ${{ runner.os }}-puppeteer-fonts-v6-${{ hashFiles('package.json') }}
           restore-keys: ${{ runner.os }}-puppeteer-fonts-v6-
 
-      - name: 缓存JS请求网络资源
+      - name: 缓存网络资源
         uses: actions/cache@v4
         with:
           path: resource_cache
@@ -35,7 +35,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 快速安装中文字体（带缓存）
+      - name: 安装字体
         run: |
           mkdir -p ~/.local/share/fonts
           if [ ! -f ~/.local/share/fonts/wqy-microhei.ttc ]; then
@@ -46,7 +46,7 @@ jobs:
           fi
           sudo fc-cache -fv
 
-      - name: 安装依赖并运行
+      - name: 运行
         env:
           CF_API_URL: ${{ secrets.CF_API_URL }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
