@@ -12,14 +12,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 缓存依赖和浏览器
+      - name: 缓存依赖、浏览器和中文字体
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             ~/.cache/puppeteer
-          key: ${{ runner.os }}-puppeteer-v4-${{ hashFiles('package.json') }}
-          restore-keys: ${{ runner.os }}-puppeteer-v4-
+            ~/.local/share/fonts
+          key: ${{ runner.os }}-puppeteer-fonts-v6-${{ hashFiles('package.json') }}
+          restore-keys: ${{ runner.os }}-puppeteer-fonts-v6-
 
       - name: 缓存JS请求网络资源
         uses: actions/cache@v4
@@ -34,8 +35,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: 安装中文字体
+      - name: 快速安装中文字体（带缓存）
         run: |
+          mkdir -p ~/.local/share/fonts
+          if [ ! -f ~/.local/share/fonts/wqy-microhei.ttc ]; then
+              echo "Downloading WQY fonts into cache..."
+              sudo apt-get update -qq && sudo apt-get install -y fonts-wqy-microhei fonts-noto-cjk
+              cp -r /usr/share/fonts/truetype/wqy/* ~/.local/share/fonts/ 2>/dev/null || true
+              cp -r /usr/share/fonts/opentype/noto/* ~/.local/share/fonts/ 2>/dev/null || true
+          fi
           sudo fc-cache -fv
 
       - name: 安装依赖并运行
