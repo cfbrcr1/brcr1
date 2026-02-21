@@ -12,20 +12,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 缓存 node_modules 和 puppeteer 浏览器，加速后续启动
-      - name: 缓存依赖和浏览器
+      - name: 缓存依赖、浏览器和中文字体
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             ~/.cache/puppeteer
-          key: ${{ runner.os }}-puppeteer-v2-${{ hashFiles('package.json') }}
-          restore-keys: ${{ runner.os }}-puppeteer-v2-
+            /usr/share/fonts/noto-cjk
+          key: ${{ runner.os }}-puppeteer-v3-${{ hashFiles('package.json') }}
+          restore-keys: ${{ runner.os }}-puppeteer-v3-
 
       - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
+      - name: 安装中文字体
+        run: |
+          # 检查字体是否已缓存，避免重复安装
+          if [ ! -d "/usr/share/fonts/noto-cjk" ]; then
+            sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+            sudo mkdir -p /usr/share/fonts/noto-cjk
+            sudo cp /usr/share/fonts/opentype/noto/*.otf /usr/share/fonts/noto-cjk/ 2>/dev/null || true
+            sudo cp /usr/share/fonts/truetype/noto/*.ttf /usr/share/fonts/noto-cjk/ 2>/dev/null || true
+            sudo fc-cache -fv
+          else
+            echo "中文字体已从缓存恢复，跳过安装"
+            sudo cp /usr/share/fonts/noto-cjk/*.otf /usr/share/fonts/opentype/noto/ 2>/dev/null || true
+            sudo cp /usr/share/fonts/noto-cjk/*.ttf /usr/share/fonts/truetype/noto/ 2>/dev/null || true
+            sudo fc-cache -f
+          fi
 
       - name: 安装依赖并运行
         env:
