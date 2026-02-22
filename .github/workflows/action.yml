@@ -2,9 +2,12 @@ name: CI
 
 on:
   schedule:
-  #  # 每10分钟执行一次（UTC时间，基于UTC+8的cron在此换算）
-    - cron: '*/10 * * * *'
+    - cron: '0,10,20,30,40,50 * * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
 
 jobs:
   monitor:
@@ -19,10 +22,11 @@ jobs:
             node_modules
             ~/.cache/puppeteer
             ~/.local/share/fonts
+            release_tracking_cache
           key: ${{ runner.os }}-puppeteer-fonts-v6-${{ hashFiles('package.json') }}
           restore-keys: ${{ runner.os }}-puppeteer-fonts-v6-
 
-      - name: 缓存网络资源
+      - name: 缓存资源
         uses: actions/cache@v4
         with:
           path: resource_cache
@@ -30,7 +34,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-resource-cache-
 
-      - name: 安装 Node.js
+      - name: 安装Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -50,11 +54,15 @@ jobs:
         env:
           CF_API_URL: ${{ secrets.CF_API_URL }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
-          # NODE_NAME 必须唯一，用于分片计算
           NODE_NAME: ${{ secrets.NODE_NAME }}
-          # 严禁用 echo "$MAIN" > file，shell会解析 ${} 导致代码损坏
           MAIN: ${{ secrets.MAIN }}
+          RELEASE: ${{ secrets.RELEASE }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm install puppeteer-core puppeteer-extra puppeteer-extra-plugin-adblocker croner
+          npm install puppeteer-core puppeteer-extra puppeteer-extra-plugin-adblocker croner @octokit/rest axios fs-extra
           printenv MAIN > main.js
           node main.js
+          if [ -n "$RELEASE" ]; then
+            printenv RELEASE > release.js
+            node release.js
+          fi
